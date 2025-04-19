@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stock Portfolio Suggestion Engine</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body class="bg-gradient-to-br from-green-900 to-gray-900 text-white min-h-screen flex flex-col items-center justify-center">
+    <div class="container mx-auto p-6 bg-gray-800 bg-opacity-80 rounded-lg shadow-xl animate-fade-in">
+        <h1 class="text-4xl font-bold text-yellow-400 mb-6 text-center">Stock Portfolio Suggestion Engine</h1>
+        <form method="POST" action="/" class="space-y-6" id="portfolio-form" onsubmit="return validateForm()">
+            <div>
+                <label for="amount" class="block text-lg font-semibold text-yellow-200">Investment Amount (USD, min $5000)</label>
+                <input type="number" id="amount" name="amount" min="5000" required
+                       class="w-full p-3 mt-2 rounded-lg bg-gray-700 text-white border border-yellow-400 focus:outline-none focus:ring-2 focus:ring-yellow-400">
+            </div>
+            
+            <div>
+                <p class="text-lg font-semibold text-yellow-200">Select One Investment Strategy</p>
+                <div class="mt-2 space-y-2">
+                    {% for strategy in strategies %}
+                        <div class="flex items-center">
+                            <input type="radio" id="{{ strategy }}" name="strategy" value="{{ strategy }}" required
+                                   class="h-6 w-6 text-yellow-400 focus:ring-yellow-400 cursor-pointer">
+                            <label for="{{ strategy }}" class="ml-3 text-lg text-white cursor-pointer">{{ strategy.replace('_', ' ').title() }}</label>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+            
+            <button type="submit"
+                    class="w-full py-3 px-6 bg-yellow-400 text-gray-900 font-bold rounded-lg hover:bg-yellow-300 transition duration-300 transform hover:scale-105">
+                Get Portfolio Suggestion
+            </button>
+        </form>
+        
+        {% if error %}
+            <p class="mt-4 text-red-400 font-semibold">{{ error }}</p>
+        {% endif %}
+    </div>
+    <script>
+        function validateForm() {
+            const strategy = document.querySelector('input[name="strategy"]:checked');
+            if (!strategy) {
+                alert("Please select one investment strategy.");
+                return false;
+            }
+            return true;
+        }
+    </script>
+</body>
+</html>
