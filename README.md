@@ -4,7 +4,19 @@ A web-based Python application that suggests stock/ETF portfolios based on user-
 
 ---
 
+
 ## 🌐 Live Demo
+
+
+Strategy : Ethical
+https://github.com/user-attachments/assets/3a9511cc-1dfe-4a87-8226-2daf2201eaea
+
+Strategy : Quality
+https://github.com/user-attachments/assets/ab723303-968a-4f8a-8155-f24acc0e1de2
+
+<img width="1256" alt="image" src="https://github.com/user-attachments/assets/111801e8-e2c7-4cf3-b104-148610287f56" />
+
+<img width="1171" alt="image" src="https://github.com/user-attachments/assets/91daf538-0e54-4c4b-98ad-c1cd965ad376" />
 
 **URL:** 
 
