@@ -1,142 +1,137 @@
-📈 Stock Portfolio Suggestion Engine
-A web-based Python application that suggests stock/ETF portfolios based on user-selected investment strategies and investment amounts.
+# 📈 Stock Portfolio Suggestion Engine
 
-🌐 Live Demo
+A web-based Python application that suggests stock/ETF portfolios based on user-selected investment strategies and investment amounts.  
 
-🔧 Features
-User Input
+---
 
-Investment amount (minimum $5000 USD)
+## 🌐 Live Demo
 
-Choose 1–2 strategies:
+**URL:** 
 
-Ethical
+---
 
-Growth
+## 🔧 Features
 
-Index
+- **User Input:**
+  - Investment amount (minimum **$5000 USD**)
+  - Choose 1–2 strategies:
+    - Ethical
+    - Growth
+    - Index
+    - Quality
+    - Value
 
-Quality
+- **App Output:**
+  - Descriptions of selected strategies
+  - Suggested stocks/ETFs with allocated **shares and dollar amounts**
+  - **Real-time** portfolio value using **yFinance**
+  - **Interactive 5-day trend chart** of portfolio performance
 
-Value
+- **Robust Error Handling:**
+  - Invalid investment amounts
+  - Missing/invalid strategy selections
+  - API failures
+  - Internet connectivity issues
 
-App Output
+- **Deployment:**
+  - Publicly accessible via **Render**
 
-Descriptions of selected strategies
+---
 
-Suggested stocks/ETFs with allocated shares and dollar amounts
+## ⚙️ Local Development Setup
 
-Real-time portfolio value using yFinance
+1. **Clone the Repository**
 
-Interactive 5-day trend chart of portfolio performance
+    ```bash
+    git clone https://github.com/your-username/stock-portfolio-engine.git
+    cd stock-portfolio-engine
+    ```
 
-Error Handling
+2. **Create and Activate a Virtual Environment**
 
-Invalid investment amounts
+    ```bash
+    python3 -m venv venv
+    source venv/bin/activate
+    ```
 
-Incorrect or missing strategy selections
+3. **Install Dependencies**
 
-API failures
+    ```bash
+    pip install -r requirements.txt
+    ```
 
-No internet connection
+4. **Run the Application**
 
-Deployment
+    ```bash
+    python3 app.py
+    ```
 
-Publicly accessible via Render
+5. **Access the App**
 
-⚙️ Local Development Setup
-Clone the repository
+    Open your browser and go to: [http://127.0.0.1:5000](http://127.0.0.1:5000)
 
-bash
-Copy
-Edit
-git clone https://github.com/your-username/stock-portfolio-engine.git
-cd stock-portfolio-engine
-Create and activate virtual environment
+---
 
-bash
-Copy
-Edit
-python3 -m venv venv
-source venv/bin/activate
-Install dependencies
+## 🚀 Deployment
 
-bash
-Copy
-Edit
-pip install -r requirements.txt
-Run the application
+- **Platform:** [Render](https://render.com)
 
-bash
-Copy
-Edit
-python3 app.py
-Access the app locally
-Open http://127.0.0.1:5000 in your browser.
+- **Configuration:**
+    - **Build command:**
 
-🚀 Deployment
-Hosted on: 
+        ```bash
+        pip install -r requirements.txt
+        ```
 
-Configuration
+    - **Start command:**
 
-Build command:
+        ```bash
+        gunicorn app:app
+        ```
 
-bash
-Copy
-Edit
-pip install -r requirements.txt
-Start command:
+- **Live URL:** *(Add once deployed)*
 
-bash
-Copy
-Edit
-gunicorn app:app
-Live URL: (Add once deployed)
+---
 
-🧪 Example Output
-Input:
+## 🧪 Example Output
 
-Investment: $10,000
+**Input:**
+- Investment: `$10,000`
+- Strategy: `Index Investing`
 
-Strategy: Index Investing
+**Output:**
 
-Result:
+- **Strategy Description:**
+    > Index Investing: Tracks broad market indices...
 
-Strategy Description:
-Index Investing: Tracks broad market indices...
+- **Allocation:**
+    - `VTI`: 30 shares @ $250.00 → **$7,500.00**
+    - `IXUS`: 20 shares @ $60.00 → **$1,200.00**
+    - `ILTB`: 10 shares @ $50.00 → **$500.00**
 
-Allocation:
+- **Current Value:** `$9,200.00`
+- **Trend:** Interactive 5-day chart (adjusted close values)
 
-VTI: 30 shares @ $250.00 → $7,500.00
+---
 
-IXUS: 20 shares @ $60.00 → $1,200.00
+## 📋 Requirements
 
-ILTB: 10 shares @ $50.00 → $500.00
+- **Python** 3.8+
+- **Libraries:**
+  - `flask`
+  - `yfinance`
+  - `pandas`
+  - `plotly`
+  - `gunicorn`
 
-Current Value: $9,200.00
+> See `requirements.txt` for the complete list.
 
-Trend: Interactive 5-day chart of daily closing prices
+---
 
-📋 Requirements
-Python 3.8+
+## 📝 Notes
 
-Libraries:
+- Uses **yFinance** for fetching real-time and historical stock/ETF data (no API key required).
+- Portfolio allocation is split **evenly across selected securities**, using **whole shares** only.
+- Trend chart displays **adjusted closing prices** from the **last 5 trading days**.
 
-flask
-
-yfinance
-
-pandas
-
-plotly
-
-gunicorn
-
-(See requirements.txt for full list.)
-
-📝 Notes
-Uses yFinance for real-time and historical stock/ETF data — no API key required.
-
-Portfolio allocates funds evenly across selected securities using whole shares.
-
-Trend chart displays adjusted close values for the past 5 trading days.
+---
