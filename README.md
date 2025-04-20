@@ -6,7 +6,8 @@ A web-based Python application that suggests stock/ETF portfolios based on user-
 
 
 ## 🌐 Live Demo
-
+URL : https://portfolioadvisor.onrender.com
+DEPLOYED USING RENDER
 
 Strategy : Ethical
 
