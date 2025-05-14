@@ -45,7 +45,7 @@ STRATEGY_MAPPINGS = {
     },
     "value": {
         "description": "Value Investing targets undervalued stocks with low price-to-earnings or price-to-book ratios, expected to appreciate over time.",
-        "securities": ["BRK-B", "INTC", "JPM"]  # Fixed BRK.B to BRK-B
+        "securities": ["BRK-B", "INTC", "JPM"]
     }
 }
 
@@ -92,7 +92,6 @@ def get_stock_data(symbol, retries=3, backoff_factor=1):
                 return None, f"Error: Invalid symbol '{symbol}'."
             
             current_price = float(quote[0]['close'])
-            previous_close = float(quote[0].get('prevClose', current_price))  # Fallback to current if unavailable
             
             # Get 5-day historical data
             end_date = datetime.now()
@@ -108,12 +107,15 @@ def get_stock_data(symbol, retries=3, backoff_factor=1):
             closes = history['close'][-available_days:].tolist()
             history_dict = dict(zip(dates, closes))
             
+            # Set previous_close from the second-to-last day’s close
+            previous_close = float(history['close'][-2]) if len(history) >= 2 else current_price
+            
             # Cache data
             data = {"current_price": current_price, "previous_close": previous_close, "history": history_dict}
             cache[symbol] = data
             save_cache(cache)
             
-            app.logger.debug(f"Data fetched for {symbol}: price={current_price}, history={history_dict}")
+            app.logger.debug(f"Data fetched for {symbol}: price={current_price}, previous_close={previous_close}, history={history_dict}")
             return data, None
         except Exception as e:
             app.logger.error(f"Error fetching data for {symbol} on attempt {attempt + 1}: {str(e)}")
