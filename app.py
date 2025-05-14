@@ -1,8 +1,8 @@
+#703138cf3a9234b03857070384d7153cb7b21b05
 import os
 from flask import Flask, request, render_template
-import yfinance as yf
+from tiingo import TiingoClient
 from datetime import datetime, timedelta
-from dateutil import tz
 import socket
 import pandas as pd
 import plotly.express as px
@@ -10,11 +10,20 @@ import plotly.io as pio
 import logging
 import time
 import random
+import pickle
+import os.path
 
 app = Flask(__name__)
 
-# Set up logging for debugging
+# Set up logging
 logging.basicConfig(level=logging.DEBUG)
+
+# Tiingo client
+tiingo_client = TiingoClient({"api_key": "703138cf3a9234b03857070384d7153cb7b21b05"})  # Replace with your API key
+
+# Cache file
+CACHE_FILE = "tiingo_cache.pkl"
+CACHE_DURATION = 3600  # Cache for 1 hour
 
 # Investment strategy mappings
 STRATEGY_MAPPINGS = {
@@ -36,7 +45,7 @@ STRATEGY_MAPPINGS = {
     },
     "value": {
         "description": "Value Investing targets undervalued stocks with low price-to-earnings or price-to-book ratios, expected to appreciate over time.",
-        "securities": ["BRK-B", "INTC", "JPM"]
+        "securities": ["BRK-B", "INTC", "JPM"]  # Fixed BRK.B to BRK-B
     }
 }
 
@@ -48,44 +57,64 @@ def check_internet():
     except OSError:
         return False
 
+def load_cache():
+    """Load cached Tiingo data if available and not expired."""
+    if os.path.exists(CACHE_FILE):
+        with open(CACHE_FILE, 'rb') as f:
+            cache = pickle.load(f)
+            if time.time() - cache.get('timestamp', 0) < CACHE_DURATION:
+                app.logger.debug("Loaded valid cache")
+                return cache.get('data', {})
+    return {}
+
+def save_cache(data):
+    """Save Tiingo data to cache."""
+    cache = {'timestamp': time.time(), 'data': data}
+    with open(CACHE_FILE, 'wb') as f:
+        pickle.dump(cache, f)
+    app.logger.debug("Saved data to cache")
+
 def get_stock_data(symbol, retries=3, backoff_factor=1):
-    """Fetch current price and 5-day historical data using yfinance with retry logic."""
+    """Fetch current price and 5-day historical data using Tiingo with retry logic."""
+    # Check cache
+    cache = load_cache()
+    if symbol in cache:
+        app.logger.debug(f"Using cached data for {symbol}")
+        return cache[symbol], None
+
     for attempt in range(retries):
         try:
             app.logger.debug(f"Fetching data for {symbol}, attempt {attempt + 1}")
-            ticker = yf.Ticker(symbol)
-            # Get current price
-            quote = ticker.info
-            if not quote or "currentPrice" not in quote:
-                # Try with exchange suffix
-                alt_symbol = f"{symbol}.NYSE"
-                app.logger.debug(f"Retrying with {alt_symbol}")
-                ticker = yf.Ticker(alt_symbol)
-                quote = ticker.info
-                if not quote or "currentPrice" not in quote:
-                    app.logger.error(f"Invalid quote response for {symbol}: {quote}")
-                    return None, f"Error: Invalid symbol '{symbol}'."
+            # Get current quote
+            quote = tiingo_client.get_ticker_price(ticker=symbol, fmt='json')
+            if not quote or not isinstance(quote, list) or len(quote) == 0 or 'close' not in quote[0]:
+                app.logger.error(f"Invalid quote response for {symbol}: {quote}")
+                return None, f"Error: Invalid symbol '{symbol}'."
             
-            current_price = float(quote["currentPrice"])
-            previous_close = float(quote["previousClose"])
+            current_price = float(quote[0]['close'])
+            previous_close = float(quote[0].get('prevClose', current_price))  # Fallback to current if unavailable
             
-            # Get historical data (10 days to ensure 5 trading days)
+            # Get 5-day historical data
             end_date = datetime.now()
-            start_date = end_date - timedelta(days=10)
-            history = ticker.history(start=start_date, end=end_date, interval="1d")
-            
+            start_date = end_date - timedelta(days=10)  # Buffer for trading days
+            history = tiingo_client.get_dataframe(tickers=symbol, startDate=start_date.strftime("%Y-%m-%d"), endDate=end_date.strftime("%Y-%m-%d"), frequency='daily')
             if history.empty:
                 app.logger.error(f"No historical data for {symbol}")
                 return None, f"Error: No historical data for '{symbol}'."
             
-            # Use available data (at least 1 day, ideally 5)
+            # Extract last 5 trading days
             available_days = min(len(history), 5)
             dates = history.index[-available_days:].strftime("%Y-%m-%d").tolist()
-            closes = history["Close"][-available_days:].tolist()
+            closes = history['close'][-available_days:].tolist()
             history_dict = dict(zip(dates, closes))
             
+            # Cache data
+            data = {"current_price": current_price, "previous_close": previous_close, "history": history_dict}
+            cache[symbol] = data
+            save_cache(cache)
+            
             app.logger.debug(f"Data fetched for {symbol}: price={current_price}, history={history_dict}")
-            return {"current_price": current_price, "previous_close": previous_close, "history": history_dict}, None
+            return data, None
         except Exception as e:
             app.logger.error(f"Error fetching data for {symbol} on attempt {attempt + 1}: {str(e)}")
             if attempt < retries - 1:
@@ -94,6 +123,7 @@ def get_stock_data(symbol, retries=3, backoff_factor=1):
                 time.sleep(sleep_time)
             else:
                 return None, f"Error: Unable to fetch data for '{symbol}'. Details: {str(e)}"
+        time.sleep(2)  # 500 requests/hour = ~2s delay
 
 def allocate_portfolio(amount, strategy):
     """Allocate funds to securities based on selected strategy."""
@@ -113,6 +143,9 @@ def allocate_portfolio(amount, strategy):
         data, error = get_stock_data(symbol)
         if error:
             return None, error
+        if not data["history"]:
+            app.logger.error(f"Empty historical data for {symbol}")
+            return None, f"Error: No historical data available for '{symbol}'."
         portfolio.append({"symbol": symbol, "current_price": data["current_price"], "previous_close": data["previous_close"], "history": data["history"]})
     
     # Allocate funds equally
@@ -173,7 +206,11 @@ def allocate_portfolio(amount, strategy):
 def index():
     if request.method == "POST":
         try:
-            amount = float(request.form.get("amount"))
+            amount_str = request.form.get("amount")
+            if not amount_str:
+                app.logger.error("No amount provided")
+                return render_template("index.html", error="Please enter a dollar amount.", strategies=STRATEGY_MAPPINGS.keys())
+            amount = float(amount_str)
             strategy = request.form.get("strategy")
             
             app.logger.debug(f"Received form data: amount={amount}, strategy={strategy}")
@@ -188,9 +225,12 @@ def index():
                 return render_template("index.html", error=error, strategies=STRATEGY_MAPPINGS.keys())
             
             return render_template("result.html", result=result)
-        except ValueError:
-            app.logger.error("Invalid amount entered")
+        except ValueError as e:
+            app.logger.error(f"Invalid amount entered: {str(e)}")
             return render_template("index.html", error="Please enter a valid dollar amount.", strategies=STRATEGY_MAPPINGS.keys())
+        except Exception as e:
+            app.logger.error(f"Unexpected error: {str(e)}")
+            return render_template("index.html", error=f"An unexpected error occurred: {str(e)}", strategies=STRATEGY_MAPPINGS.keys())
     
     return render_template("index.html", strategies=STRATEGY_MAPPINGS.keys())
 
