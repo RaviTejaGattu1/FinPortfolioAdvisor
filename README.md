@@ -170,11 +170,3 @@ https://github.com/user-attachments/assets/ab723303-968a-4f8a-8155-f24acc0e1de2
 > See `requirements.txt` for the complete list.
 
 ---
-
-## 📝 Notes
-
-- Uses **yFinance** for fetching real-time and historical stock/ETF data (no API key required).
-- Portfolio allocation is split **evenly across selected securities**, using **whole shares** only.
-- Trend chart displays **adjusted closing prices** from the **last 5 trading days**.
-
----
