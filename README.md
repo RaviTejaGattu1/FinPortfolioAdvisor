@@ -6,7 +6,6 @@ A web-based Python application that suggests stock/ETF portfolios based on user-
 
 
 ## 🌐 Live Demo
-Live Application Deployed URL : 
 
 
 Strategy : Ethical
@@ -21,15 +20,45 @@ https://github.com/user-attachments/assets/ab723303-968a-4f8a-8155-f24acc0e1de2
 
 <img width="1171" alt="image" src="https://github.com/user-attachments/assets/91daf538-0e54-4c4b-98ad-c1cd965ad376" />
 
-**URL:** 
+**URL:** https://portfolioadvisor.onrender.com/
 
 ---
 
-## 🔧 Features
+## Features
+
+- **Investment Strategies**: Choose from five strategies (Ethical, Growth, Index, Quality, Value) via radio buttons for single selection.
+- **Portfolio Allocation**: Displays number of shares, allocated value, value change, and percentage change for each security.
+- **5-Day Trend Chart**: Visualizes portfolio value over the last five trading days using Plotly with a gold-themed design.
+- **Premium UI**: Built with Tailwind CSS, featuring a green/gold gradient for a professional look.
+- **Real-Time Data**: Fetches stock prices and historical data using the Tiingo API (50,000 requests/month, 500/hour).
+- **Error Handling**: Validates inputs (minimum $5,000) and handles API errors gracefully.
+- **Caching**: Stores API responses in `tiingo_cache.pkl` for 1 hour to optimize performance.
+- **Deployment**: Hosted on Render for reliable access.
+
+## Tech Stack
+
+- **Backend**: Python 3.10, Flask 2.3.3
+- **API**: Tiingo (replaced Polygon.io, Alpha Vantage, yfinance, IEX Cloud due to rate limits and obsolescence)
+- **Frontend**: HTML, Tailwind CSS 2.2.19
+- **Data Processing**: Pandas 2.2.2, Plotly 5.22.0
+- **Deployment**: Render, Gunicorn 23.0.0
+- **Version Control**: Git, GitHub
+
+## Investment Strategies and Securities
+
+| Strategy | Description | Example Securities |
+|----------|-------------|------------|
+| Ethical | Focuses on ESG practices | AAPL, ADBE, NSRGY |
+| Growth | Targets high-growth companies | NVDA, TSLA, AMZN |
+| Index | Tracks broad market indices | VTI, IXUS, ILTB |
+| Quality | Selects financially stable firms | MSFT, JNJ, PG |
+| Value | Targets undervalued stocks | BRK-B, INTC, JPM |
+
+- ## 🔧 Features
 
 - **User Input:**
   - Investment amount (minimum **$5000 USD**)
-  - Choose 1–2 strategies:
+  - Choose 1strategies:
     - Ethical
     - Growth
     - Index
@@ -134,7 +163,6 @@ https://github.com/user-attachments/assets/ab723303-968a-4f8a-8155-f24acc0e1de2
 - **Python** 3.8+
 - **Libraries:**
   - `flask`
-  - `yfinance`
   - `pandas`
   - `plotly`
   - `gunicorn`
